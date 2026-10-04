@@ -168,11 +168,27 @@ function mapBlueskyPost(post){
 }
 
 async function fetchBlueskyFemgram(){
-  const url = "https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=femgram&limit=100";
-  const response = await fetch(url, {headers:{accept:"application/json"}, cache:"no-store"});
-  if(!response.ok) throw new Error(`Bluesky search failed: HTTP ${response.status}`);
-  const data = await response.json();
-  return (data.posts || []).flatMap(mapBlueskyPost);
+  const results = [];
+  let cursor = "";
+  const maxPages = 4;
+
+  for(let page = 0; page < maxPages; page++){
+    const params = new URLSearchParams({q:"femgram",limit:"100"});
+    if(cursor) params.set("cursor", cursor);
+
+    const response = await fetch(
+      `https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?${params.toString()}`,
+      {headers:{accept:"application/json"}, cache:"no-store"}
+    );
+    if(!response.ok) throw new Error(`Bluesky search failed: HTTP ${response.status}`);
+
+    const data = await response.json();
+    results.push(...(data.posts || []).flatMap(mapBlueskyPost));
+    cursor = data.cursor || "";
+    if(!cursor || !(data.posts || []).length) break;
+  }
+
+  return results;
 }
 
 async function init(){
