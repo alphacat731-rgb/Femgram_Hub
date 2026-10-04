@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#090a0f" />
+  <meta name="description" content="Femgram Hub — a focused media discovery interface for Femgram art." />
+  <title>Femgram Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="ageGate" class="gate" aria-hidden="true">
+    <div class="gate-card">
+      <div class="brand-mark">F</div>
+      <p class="eyebrow">FEMGRAM HUB</p>
+      <h1>Before you enter</h1>
+      <p class="muted">This hub may eventually index adult-tagged material from external sources. You must be an adult to continue.</p>
+      <div class="gate-actions">
+        <button id="enterBtn" class="btn btn-primary">I'm 18+ — Enter</button>
+        <button id="leaveBtn" class="btn btn-ghost">Leave</button>
+      </div>
+      <p class="tiny">Demo build: no explicit media is bundled in this repository.</p>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Femgram Hub home">
+      <span class="brand-icon">F</span>
+      <span>
+        <strong>Femgram</strong>
+        <small>HUB</small>
+      </span>
+    </a>
+
+    <label class="search" aria-label="Search">
+      <span>⌕</span>
+      <input id="searchInput" type="search" placeholder="Search Femgram, artist, tag…" autocomplete="off" />
+      <kbd>/</kbd>
+    </label>
+
+    <nav class="top-actions">
+      <button class="icon-btn" id="savedTopBtn" title="Show saved">🔖<span>Saved</span></button>
+      <button class="icon-btn" id="themeBtn" title="Toggle contrast">◐</button>
+    </nav>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">ONE CHARACTER. ONE HUB.</p>
+        <h1>Find Femgram media<br><span>without the scavenger hunt.</span></h1>
+        <p class="hero-copy">A clean, source-aware gallery for images, GIFs and videos. Local likes and saves work right away; source adapters can feed the catalogue later.</p>
+      </div>
+      <div class="stats">
+        <div><strong id="mediaCount">0</strong><span>items</span></div>
+        <div><strong id="sourceCount">0</strong><span>sources</span></div>
+        <div><strong id="savedCount">0</strong><span>saved</span></div>
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <div class="chips" id="typeFilters">
+        <button class="chip active" data-type="all">All</button>
+        <button class="chip" data-type="image">Images</button>
+        <button class="chip" data-type="gif">GIFs</button>
+        <button class="chip" data-type="video">Videos</button>
+      </div>
+      <div class="toolbar-right">
+        <button class="mini-btn active" data-sort="new">Latest</button>
+        <button class="mini-btn" data-sort="popular">Popular</button>
+        <button class="mini-btn" id="likedBtn">♥ Liked</button>
+      </div>
+    </section>
+
+    <section id="notice" class="notice" hidden></section>
+
+    <section id="gallery" class="gallery" aria-live="polite"></section>
+
+    <section id="emptyState" class="empty" hidden>
+      <div class="empty-icon">✦</div>
+      <h2>No Femgram found</h2>
+      <p>Try a broader search or clear the active filters.</p>
+      <button id="clearFilters" class="btn btn-primary">Clear filters</button>
+    </section>
+  </main>
+
+  <footer>
+    <span>Femgram Hub • prototype</span>
+    <span>Sources stay attributed • creators own their work</span>
+  </footer>
+
+  <div id="modal" class="modal" hidden>
+    <div class="modal-backdrop" data-close="1"></div>
+    <article class="viewer">
+      <button class="close-btn" id="closeModal" aria-label="Close">×</button>
+      <div id="viewerMedia" class="viewer-media"></div>
+      <div class="viewer-info">
+        <div>
+          <p class="eyebrow" id="viewerType">IMAGE</p>
+          <h2 id="viewerTitle">Femgram</h2>
+          <p id="viewerMeta" class="muted"></p>
+          <div id="viewerTags" class="tag-row"></div>
+        </div>
+        <div class="viewer-actions">
+          <button class="btn btn-secondary" id="viewerLike">♥ Like</button>
+          <button class="btn btn-secondary" id="viewerSave">🔖 Save</button>
+          <a class="btn btn-primary" id="viewerSource" href="#" target="_blank" rel="noopener noreferrer">Open source ↗</a>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
