@@ -106,13 +106,96 @@ function toggle(set, id){
   }
 }
 
+function isRestricted(post){
+  const labels = [
+    ...(post.labels || []),
+    ...(post.author?.labels || [])
+  ].map(label => String(label.val || label.value || "").toLowerCase());
+  return labels.some(label => ["porn","sexual","nudity","nsfw","graphic-media"].includes(label));
+}
+
+function blueskyPostUrl(post){
+  const handle = post.author?.handle || post.author?.displayName || post.author?.did;
+  const rkey = String(post.uri || "").split("/").pop();
+  return rkey && handle ? `https://bsky.app/profile/${encodeURIComponent(handle)}/post/${rkey}` : "https://bsky.app/";
+}
+
+function mapBlueskyPost(post){
+  if(isRestricted(post)) return [];
+
+  const embed = post.embed || {};
+  const embedType = String(embed.$type || "");
+
+  if(embedType.includes("app.bsky.embed.images#view") && Array.isArray(embed.images)){
+    return embed.images.map((image, index) => {
+      const direct = image.fullsize || image.thumb;
+      if(!direct) return null;
+      return {
+        id: `bsky-${post.cid}-${index}`,
+        type: "image",
+        title: post.record?.text?.split("\\n")[0]?.slice(0, 80) || "Femgram",
+        artist: post.author?.handle || post.author?.displayName || "bluesky",
+        source: "Bluesky",
+        sourceUrl: blueskyPostUrl(post),
+        thumbnail: image.thumb || direct,
+        media: direct,
+        tags: ["femgram","bluesky"],
+        likes: Number(post.likeCount || 0),
+        date: post.record?.createdAt || post.indexedAt || new Date().toISOString(),
+        rights: "See original post"
+      };
+    }).filter(Boolean);
+  }
+
+  if(embedType.includes("app.bsky.embed.video#view") && embed.thumbnail){
+    return [{
+      id: `bsky-video-${post.cid}`,
+      type: "video",
+      title: post.record?.text?.split("\\n")[0]?.slice(0, 80) || "Femgram video",
+      artist: post.author?.handle || post.author?.displayName || "bluesky",
+      source: "Bluesky",
+      sourceUrl: blueskyPostUrl(post),
+      thumbnail: embed.thumbnail,
+      media: embed.playlist || embed.thumbnail,
+      tags: ["femgram","bluesky","video"],
+      likes: Number(post.likeCount || 0),
+      date: post.record?.createdAt || post.indexedAt || new Date().toISOString(),
+      rights: "See original post"
+    }];
+  }
+
+  return [];
+}
+
+async function fetchBlueskyFemgram(){
+  const url = "https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=femgram&limit=100";
+  const response = await fetch(url, {headers:{accept:"application/json"}, cache:"no-store"});
+  if(!response.ok) throw new Error(`Bluesky search failed: HTTP ${response.status}`);
+  const data = await response.json();
+  return (data.posts || []).flatMap(mapBlueskyPost);
+}
+
 async function init(){
   try{
     const response = await fetch("./data/media.json", {cache:"no-store"});
     if(!response.ok) throw new Error("media.json could not be loaded");
-    state.items = await response.json();
+
+    const seed = await response.json();
+    let live = [];
+    try{
+      live = await fetchBlueskyFemgram();
+    }catch(liveErr){
+      console.warn("Live Bluesky collector unavailable:", liveErr);
+    }
+
+    const byId = new Map();
+    [...seed, ...live].forEach(item => byId.set(item.id, item));
+    state.items = [...byId.values()].sort((a,b) => new Date(b.date) - new Date(a.date));
+
     $("#notice").hidden = false;
-    $("#notice").textContent = "Real source media is now connected. Each card keeps the original artist and source link; future collectors can add more permitted entries.";
+    $("#notice").textContent = live.length
+      ? `Live mode: loaded ${live.length} real Femgram media items from Bluesky, plus the curated source catalogue.`
+      : "Live Bluesky search was unavailable, so the curated source catalogue is being shown.";
     render();
   }catch(err){
     console.error(err);
