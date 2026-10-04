@@ -1,0 +1,79 @@
+[
+  {
+    "id":"demo-01",
+    "type":"image",
+    "title":"Femgram — neon study",
+    "artist":"demo",
+    "source":"Prototype",
+    "sourceUrl":"https://github.com/alphacat731-rgb/Femgram_Hub",
+    "thumbnail":"./assets/demo-01.svg",
+    "media":"./assets/demo-01.svg",
+    "tags":["femgram","art","neon"],
+    "likes":84,
+    "date":"2026-10-04"
+  },
+  {
+    "id":"demo-02",
+    "type":"image",
+    "title":"Femgram — sketch page",
+    "artist":"demo",
+    "source":"Prototype",
+    "sourceUrl":"https://github.com/alphacat731-rgb/Femgram_Hub",
+    "thumbnail":"./assets/demo-02.svg",
+    "media":"./assets/demo-02.svg",
+    "tags":["femgram","sketch","drawing"],
+    "likes":132,
+    "date":"2026-10-03"
+  },
+  {
+    "id":"demo-03",
+    "type":"gif",
+    "title":"Femgram — animated loop",
+    "artist":"demo",
+    "source":"Prototype",
+    "sourceUrl":"https://github.com/alphacat731-rgb/Femgram_Hub",
+    "thumbnail":"./assets/demo-03.svg",
+    "media":"./assets/demo-03.svg",
+    "tags":["femgram","gif","animation"],
+    "likes":211,
+    "date":"2026-10-02"
+  },
+  {
+    "id":"demo-04",
+    "type":"video",
+    "title":"Femgram — motion test",
+    "artist":"demo",
+    "source":"Prototype",
+    "sourceUrl":"https://github.com/alphacat731-rgb/Femgram_Hub",
+    "thumbnail":"./assets/demo-04.svg",
+    "tags":["femgram","video","animation"],
+    "likes":176,
+    "date":"2026-10-01"
+  },
+  {
+    "id":"demo-05",
+    "type":"image",
+    "title":"Femgram — monochrome",
+    "artist":"demo",
+    "source":"Prototype",
+    "sourceUrl":"https://github.com/alphacat731-rgb/Femgram_Hub",
+    "thumbnail":"./assets/demo-05.svg",
+    "media":"./assets/demo-05.svg",
+    "tags":["femgram","monochrome","fanart"],
+    "likes":95,
+    "date":"2026-09-30"
+  },
+  {
+    "id":"demo-06",
+    "type":"image",
+    "title":"Femgram — glass card",
+    "artist":"demo",
+    "source":"Prototype",
+    "sourceUrl":"https://github.com/alphacat731-rgb/Femgram_Hub",
+    "thumbnail":"./assets/demo-06.svg",
+    "media":"./assets/demo-06.svg",
+    "tags":["femgram","design","character"],
+    "likes":63,
+    "date":"2026-09-29"
+  }
+]
