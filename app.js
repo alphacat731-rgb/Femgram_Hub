@@ -112,7 +112,7 @@ async function init(){
     if(!response.ok) throw new Error("media.json could not be loaded");
     state.items = await response.json();
     $("#notice").hidden = false;
-    $("#notice").textContent = "Prototype catalogue: the bundled entries are UI-safe placeholders. Source collectors can populate data/media.json with items you are permitted to index.";
+    $("#notice").textContent = "Real source media is now connected. Each card keeps the original artist and source link; future collectors can add more permitted entries.";
     render();
   }catch(err){
     console.error(err);
