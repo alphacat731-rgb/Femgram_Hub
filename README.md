@@ -15,7 +15,7 @@ A focused, source-aware gallery for discovering Femgram images, GIFs and videos.
 - JSON catalogue at `data/media.json`
 - GitHub Actions → GitHub Pages deployment
 
-The refresh pipeline supports Bluesky, Openverse, Wikimedia Commons, Reddit's public feed, Newgrounds' public art pages, DeviantArt oEmbed seeds, Mastodon public hashtag timelines, Tumblr public tag RSS, Flickr public photo feeds, and R34 Vault's public Femgram tag page. R34 Vault is source-linked and its media remains hosted by the original source. Collectors keep source attribution and can fail independently so one blocked/empty provider does not stop the rest of the refresh.
+The refresh pipeline supports Bluesky, Openverse, Wikimedia Commons, Reddit's public feed, Newgrounds' public art pages, DeviantArt oEmbed seeds, Mastodon public hashtag timelines, Tumblr public tag RSS, Flickr public photo feeds, and R34 Vault's public Femgram tag page. The R34 Vault collector uses the site's paginated public API when available (up to 5×100 records per refresh) and falls back to the public tag page when the API is unavailable. R34 Vault media stays hosted by the original source and every imported record keeps a source link. Collectors keep source attribution and can fail independently so one blocked/empty provider does not stop the rest of the refresh.
 
 ## GitHub Pages
 
@@ -48,6 +48,6 @@ Each item in `data/media.json` can look like:
 ## Next build targets
 
 1. More source adapters using permitted public APIs, RSS feeds, oEmbed metadata, or other authorized endpoints.
-2. Source-level pagination/cursors where providers expose them, plus deduplication by canonical URL/media identity.
+2. Source-level pagination/cursors where providers expose them, plus broader coverage and deduplication by canonical URL/media identity.
 3. Moderation metadata: mature flag, creator opt-out, takedown state, source-license notes, and collector provenance.
 4. Optional backend for account-based likes/saves instead of browser-local storage.
