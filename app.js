@@ -87,7 +87,7 @@ function resetView(){
   render();
 }
 
-function loadMore(){
+function loadMoreItems(){
   const items = filtered();
   if(state.visibleCount >= items.length) return;
   state.visibleCount = Math.min(state.visibleCount + 36, items.length);
@@ -270,17 +270,17 @@ async function init(){
 
   $("#searchInput").addEventListener("input", e => { state.query = e.target.value; resetView(); });
 
-  const loadMore = $("#loadMore");
-  if(loadMore){
-    loadMore.addEventListener("click", loadMore);
+  const loadMoreControl = $("#loadMore");
+  if(loadMoreControl){
+    loadMoreControl.addEventListener("click", loadMoreItems);
 
     if("IntersectionObserver" in window){
       const observer = new IntersectionObserver(entries => {
         if(entries.some(entry => entry.isIntersecting)){
-          window.requestAnimationFrame(loadMore);
+          window.requestAnimationFrame(loadMoreItems);
         }
       }, {rootMargin:"900px 0px"});
-      observer.observe(loadMore);
+      observer.observe(loadMoreControl);
     }
   }
   window.addEventListener("keydown", e => {
