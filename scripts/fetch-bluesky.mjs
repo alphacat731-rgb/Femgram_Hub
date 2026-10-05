@@ -6,9 +6,10 @@ const API = "https://api.bsky.app/xrpc/app.bsky.feed.searchPosts";
 const OUTPUT = "data/media.json";
 const QUERIES = [
   "femgram",
-  "#femgram",
   "geometry dash femgram",
-  "femgram art"
+  "femgram art",
+  "femgram animation",
+  "femgram drawing"
 ];
 const PAGES_PER_QUERY = 3;
 const PAGE_LIMIT = 100;
@@ -143,9 +144,14 @@ async function main(){
   let fetched = 0;
 
   for(const query of QUERIES){
-    const items = await search(query);
-    fetched += items.length;
-    for(const item of items) merged.set(item.id, item);
+    try{
+      const items = await search(query);
+      fetched += items.length;
+      for(const item of items) merged.set(item.id, item);
+      console.log(`"${query}" -> ${items.length} media records`);
+    }catch(error){
+      console.warn(`Skipping "${query}": ${error.message}`);
+    }
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
 
