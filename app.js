@@ -82,10 +82,10 @@ function openViewer(id){
   $("#viewerLike").textContent = state.liked.has(id) ? "♥ Liked" : "♥ Like";
   $("#viewerSave").textContent = state.saved.has(id) ? "🔖 Saved" : "🔖 Save";
 
-  if(item.type === "image" || item.type === "gif"){
-    $("#viewerMedia").innerHTML = `<img src="${esc(item.media || item.thumbnail)}" alt="${esc(item.title)}">`;
+  if(item.type === "video"){
+    $("#viewerMedia").innerHTML = `<video src="${esc(item.media)}" poster="${esc(item.thumbnail)}" controls playsinline preload="metadata"></video>`;
   } else {
-    $("#viewerMedia").innerHTML = `<div class="viewer-placeholder"><div style="font-size:46px;margin-bottom:15px">▶</div><strong>Video source ready</strong><p>This prototype keeps video delivery source-aware. Add a permitted direct media URL to <code>media</code> and the viewer can render it here.</p></div>`;
+    $("#viewerMedia").innerHTML = `<img src="${esc(item.media || item.thumbnail)}" alt="${esc(item.title)}">`;
   }
   modal.hidden = false;
   document.body.style.overflow = "hidden";
