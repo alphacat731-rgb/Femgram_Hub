@@ -2,14 +2,15 @@
 
 import fs from "node:fs/promises";
 
-const API = "https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts";
+const API = "https://api.bsky.app/xrpc/app.bsky.feed.searchPosts";
 const OUTPUT = "data/media.json";
 const QUERIES = [
   "femgram",
-  "Femgram",
-  "femgram geometry dash"
+  "#femgram",
+  "geometry dash femgram",
+  "femgram art"
 ];
-const PAGES_PER_QUERY = 5;
+const PAGES_PER_QUERY = 3;
 const PAGE_LIMIT = 100;
 
 function isRestricted(post){
@@ -83,28 +84,53 @@ function mapPost(post){
   return [];
 }
 
+function olderThan(date){
+  const t = Date.parse(date);
+  return Number.isFinite(t) ? new Date(t - 1000).toISOString() : "";
+}
+
 async function search(query){
   const items = [];
-  let cursor = "";
+  let until = "";
 
   for(let page = 0; page < PAGES_PER_QUERY; page++){
     const params = new URLSearchParams({
       q: query,
-      limit: String(PAGE_LIMIT)
+      limit: String(PAGE_LIMIT),
+      sort: "latest"
     });
 
-    if(cursor) params.set("cursor", cursor);
+    if(until) params.set("until", until);
 
-    const response = await fetch(`${API}?${params.toString()}`);
+    const response = await fetch(`${API}?${params.toString()}`, {
+      headers: {
+        "accept": "application/json",
+        "user-agent": "FemgramHub/0.1 (catalogue collector)"
+      }
+    });
+
     if(!response.ok){
       throw new Error(`Bluesky HTTP ${response.status} for "${query}"`);
     }
 
     const data = await response.json();
-    for(const post of data.posts || []) items.push(...mapPost(post));
+    const posts = data.posts || [];
+    if(!posts.length) break;
 
-    if(!data.cursor || !(data.posts || []).length) break;
-    cursor = data.cursor;
+    items.push(...posts.flatMap(mapPost));
+
+    const oldest = posts
+      .map(post => post.record?.createdAt || post.indexedAt)
+      .filter(Boolean)
+      .sort()[0];
+
+    const nextUntil = oldest ? olderThan(oldest) : "";
+    if(!nextUntil || nextUntil === until) break;
+
+    until = nextUntil;
+
+    // Keep request bursts gentle.
+    await new Promise(resolve => setTimeout(resolve, 700));
   }
 
   return items;
@@ -115,10 +141,12 @@ async function main(){
   const merged = new Map(existing.map(item => [item.id, item]));
 
   let fetched = 0;
+
   for(const query of QUERIES){
     const items = await search(query);
     fetched += items.length;
     for(const item of items) merged.set(item.id, item);
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
 
   const output = [...merged.values()].sort(
