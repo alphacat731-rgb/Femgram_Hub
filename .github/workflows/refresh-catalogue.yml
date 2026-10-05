@@ -53,6 +53,10 @@ jobs:
         run: node scripts/fetch-tumblr.mjs
         continue-on-error: true
 
+      - name: Refresh Flickr catalogue
+        run: node scripts/fetch-flickr.mjs
+        continue-on-error: true
+
       - name: Commit catalogue when changed
         run: |
           git config user.name "github-actions[bot]"
