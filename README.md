@@ -14,7 +14,7 @@ A focused, source-aware gallery for discovering Femgram images, GIFs and videos.
 - JSON catalogue at `data/media.json`
 - GitHub Actions → GitHub Pages deployment
 
-The catalogue is now populated by multiple source collectors. The current refresh pipeline includes Bluesky, Openverse, Wikimedia Commons, Reddit's public feed, Newgrounds' public art pages, DeviantArt oEmbed seeds, Mastodon public hashtag timelines, and Tumblr public tag RSS. Collectors are source-aware and keep creator/source attribution; collectors that fail are isolated so the rest of the catalogue can still refresh.
+The catalogue is now populated by multiple source collectors. The current refresh pipeline includes Bluesky, Openverse, Wikimedia Commons, Reddit's public feed, Newgrounds' public art pages, DeviantArt oEmbed seeds, Mastodon public hashtag timelines, Tumblr public tag RSS, and Flickr public photo feeds. Collectors are source-aware and keep creator/source attribution; collectors that fail are isolated so the rest of the catalogue can still refresh.
 
 ## GitHub Pages
 
