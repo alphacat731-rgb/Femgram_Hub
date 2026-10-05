@@ -14,7 +14,7 @@ A focused, source-aware gallery for discovering Femgram images, GIFs and videos.
 - JSON catalogue at `data/media.json`
 - GitHub Actions → GitHub Pages deployment
 
-The bundled catalogue intentionally contains only UI-safe demo artwork. Add media that you are authorized to index, and keep the original creator/source attribution.
+The catalogue is now populated by multiple source collectors. The current refresh pipeline includes Bluesky, Openverse, Wikimedia Commons, Reddit's public feed, and Newgrounds' public art pages. Collectors are source-aware and keep creator/source attribution; collectors that fail are isolated so the rest of the catalogue can still refresh.
 
 ## GitHub Pages
 
@@ -46,8 +46,8 @@ Each item in `data/media.json` can look like:
 
 ## Next build targets
 
-1. Source adapters / collectors that use each platform's permitted public API, RSS feed, embed metadata, or other authorized endpoint.
-2. Deduplication by canonical source URL and media hash.
-3. Moderation metadata: adult flag, creator opt-out, takedown state, and source-license notes.
+1. Additional source adapters using permitted public APIs, RSS feeds, oEmbed metadata, or other authorized endpoints; source-specific licensing and opt-out checks should remain enabled.
+2. Deduplication by canonical source URL and media hash, plus resilient retry/backoff handling.
+3. Moderation metadata: mature flag, creator opt-out, takedown state, source-license notes, and collector provenance.
 4. Optional backend for account-based likes/saves instead of browser-local storage.
 5. Infinite scroll / pagination once the catalogue is large.
