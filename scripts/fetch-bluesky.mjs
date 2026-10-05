@@ -6,12 +6,18 @@ const API = "https://api.bsky.app/xrpc/app.bsky.feed.searchPosts";
 const OUTPUT = "data/media.json";
 const QUERIES = [
   "femgram",
-  "geometry dash femgram",
   "femgram art",
-  "femgram animation",
-  "femgram drawing"
+  "femgram fanart",
+  "femgram drawing",
+  "femgram bunny",
+  "femgram geometry dash",
+  "femgram limbo",
+  "femgram bgram",
+  "femgram oc",
+  "femgram furry"
 ];
-const PAGES_PER_QUERY = 3;
+const SORTS = ["latest", "top"];
+const PAGES_PER_QUERY = 2;
 const PAGE_LIMIT = 100;
 
 function isRestricted(post){
@@ -90,7 +96,7 @@ function olderThan(date){
   return Number.isFinite(t) ? new Date(t - 1000).toISOString() : "";
 }
 
-async function search(query){
+async function search(query, sort){
   const items = [];
   let until = "";
 
@@ -98,7 +104,7 @@ async function search(query){
     const params = new URLSearchParams({
       q: query,
       limit: String(PAGE_LIMIT),
-      sort: "latest"
+      sort
     });
 
     if(until) params.set("until", until);
@@ -118,7 +124,13 @@ async function search(query){
     const posts = data.posts || [];
     if(!posts.length) break;
 
-    items.push(...posts.flatMap(mapPost));
+    // Search can return loosely related results. For broader queries,
+    // retain only posts whose text actually mentions Femgram/FemGram.
+    const relevant = query === "femgram"
+      ? posts
+      : posts.filter(post => /femgram/i.test(String(post.record?.text || "")) || (post.record?.facets || []).some(f => JSON.stringify(f).toLowerCase().includes("femgram")));
+
+    items.push(...relevant.flatMap(mapPost));
 
     const oldest = posts
       .map(post => post.record?.createdAt || post.indexedAt)
@@ -144,15 +156,17 @@ async function main(){
   let fetched = 0;
 
   for(const query of QUERIES){
-    try{
-      const items = await search(query);
-      fetched += items.length;
-      for(const item of items) merged.set(item.id, item);
-      console.log(`"${query}" -> ${items.length} media records`);
-    }catch(error){
-      console.warn(`Skipping "${query}": ${error.message}`);
+    for(const sort of SORTS){
+      try{
+        const items = await search(query, sort);
+        fetched += items.length;
+        for(const item of items) merged.set(item.id, item);
+        console.log(`"${query}" [${sort}] -> ${items.length} media records`);
+      }catch(error){
+        console.warn(`Skipping "${query}" [${sort}]: ${error.message}`);
+      }
+      await new Promise(resolve => setTimeout(resolve, 800));
     }
-    await new Promise(resolve => setTimeout(resolve, 1000));
   }
 
   const output = [...merged.values()].sort(
