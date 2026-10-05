@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const fs = require("node:fs/promises");
+import fs from "node:fs/promises";
 
 const API = "https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts";
 const OUTPUT = "data/media.json";
