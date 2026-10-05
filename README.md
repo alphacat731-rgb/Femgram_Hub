@@ -10,11 +10,12 @@ A focused, source-aware gallery for discovering Femgram images, GIFs and videos.
 - Latest / popular sorting
 - Local likes and saves via `localStorage`
 - Full-screen viewer with source attribution
-- 18+ entry gate for future adult-tagged catalogue support
+- Automatic infinite scroll in small batches, with a manual fallback
+- 18+ entry gate
 - JSON catalogue at `data/media.json`
 - GitHub Actions → GitHub Pages deployment
 
-The catalogue is now populated by multiple source collectors. The current refresh pipeline includes Bluesky, Openverse, Wikimedia Commons, Reddit's public feed, Newgrounds' public art pages, DeviantArt oEmbed seeds, Mastodon public hashtag timelines, Tumblr public tag RSS, and Flickr public photo feeds. R34 Vault is also listed as a link-only external source; its media is not imported into the repository. Collectors are source-aware and keep creator/source attribution; collectors that fail are isolated so the rest of the catalogue can still refresh.
+The refresh pipeline supports Bluesky, Openverse, Wikimedia Commons, Reddit's public feed, Newgrounds' public art pages, DeviantArt oEmbed seeds, Mastodon public hashtag timelines, Tumblr public tag RSS, Flickr public photo feeds, and R34 Vault's public Femgram tag page. R34 Vault is source-linked and its media remains hosted by the original source. Collectors keep source attribution and can fail independently so one blocked/empty provider does not stop the rest of the refresh.
 
 ## GitHub Pages
 
@@ -46,8 +47,7 @@ Each item in `data/media.json` can look like:
 
 ## Next build targets
 
-1. Additional source adapters using permitted public APIs, RSS feeds, oEmbed metadata, or other authorized endpoints; source-specific licensing and opt-out checks should remain enabled.
-2. Deduplication by canonical source URL and media hash, plus resilient retry/backoff handling.
+1. More source adapters using permitted public APIs, RSS feeds, oEmbed metadata, or other authorized endpoints.
+2. Source-level pagination/cursors where providers expose them, plus deduplication by canonical URL/media identity.
 3. Moderation metadata: mature flag, creator opt-out, takedown state, source-license notes, and collector provenance.
 4. Optional backend for account-based likes/saves instead of browser-local storage.
-5. Infinite scroll / pagination once the catalogue is large.
