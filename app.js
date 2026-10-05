@@ -7,7 +7,8 @@ const state = {
   query: "",
   current: null,
   liked: new Set(JSON.parse(localStorage.getItem("femgram-liked") || "[]")),
-  saved: new Set(JSON.parse(localStorage.getItem("femgram-saved") || "[]"))
+  saved: new Set(JSON.parse(localStorage.getItem("femgram-saved") || "[]")),
+  visibleCount: 48
 };
 
 const $ = (s) => document.querySelector(s);
@@ -59,11 +60,38 @@ function card(item){
 
 function render(){
   const items = filtered();
-  gallery.innerHTML = items.map(card).join("");
+  const visible = items.slice(0, state.visibleCount);
+
+  gallery.innerHTML = visible.map(card).join("");
   emptyState.hidden = items.length > 0;
+
   $("#mediaCount").textContent = state.items.length;
   $("#sourceCount").textContent = new Set(state.items.map(i => i.source)).size;
+
+  const loader = $("#loadMore");
+  const loaderText = $("#loadMoreText");
+
+  if(loader){
+    const hasMore = visible.length < items.length;
+    loader.hidden = !hasMore;
+    if(hasMore){
+      loaderText.textContent = `Showing ${visible.length} of ${items.length} — keep scrolling`;
+    }
+  }
+
   persist();
+}
+
+function resetView(){
+  state.visibleCount = 48;
+  render();
+}
+
+function loadMore(){
+  const items = filtered();
+  if(state.visibleCount >= items.length) return;
+  state.visibleCount = Math.min(state.visibleCount + 36, items.length);
+  render();
 }
 
 function setActive(selector, value, attr="data-type"){
@@ -215,13 +243,13 @@ async function init(){
     state.savedOnly = false;
     $("#likedBtn").classList.remove("active");
     setActive("[data-type]", state.type);
-    render();
+    resetView();
   }));
 
   document.querySelectorAll("[data-sort]").forEach(btn => btn.addEventListener("click", () => {
     state.sort = btn.dataset.sort;
     setActive("[data-sort]", state.sort, "data-sort");
-    render();
+    resetView();
   }));
 
   $("#likedBtn").addEventListener("click", () => {
@@ -229,7 +257,7 @@ async function init(){
     state.savedOnly = false;
     $("#savedTopBtn").classList.remove("active");
     $("#likedBtn").classList.toggle("active", state.likedOnly);
-    render();
+    resetView();
   });
 
   $("#savedTopBtn").addEventListener("click", () => {
@@ -237,10 +265,24 @@ async function init(){
     state.likedOnly = false;
     $("#likedBtn").classList.remove("active");
     $("#savedTopBtn").classList.toggle("active", state.savedOnly);
-    render();
+    resetView();
   });
 
-  $("#searchInput").addEventListener("input", e => { state.query = e.target.value; render(); });
+  $("#searchInput").addEventListener("input", e => { state.query = e.target.value; resetView(); });
+
+  const loadMore = $("#loadMore");
+  if(loadMore){
+    loadMore.addEventListener("click", loadMore);
+
+    if("IntersectionObserver" in window){
+      const observer = new IntersectionObserver(entries => {
+        if(entries.some(entry => entry.isIntersecting)){
+          window.requestAnimationFrame(loadMore);
+        }
+      }, {rootMargin:"900px 0px"});
+      observer.observe(loadMore);
+    }
+  }
   window.addEventListener("keydown", e => {
     if(e.key === "/" && document.activeElement !== $("#searchInput")){ e.preventDefault(); $("#searchInput").focus(); }
     if(e.key === "Escape") closeViewer();
@@ -272,7 +314,7 @@ async function init(){
   $("#clearFilters").addEventListener("click", () => {
     state.type="all";state.sort="new";state.likedOnly=false;state.savedOnly=false;state.query="";
     $("#searchInput").value="";$("#likedBtn").classList.remove("active");$("#savedTopBtn").classList.remove("active");
-    setActive("[data-type]","all");setActive("[data-sort]","new","data-sort");render();
+    setActive("[data-type]","all");setActive("[data-sort]","new","data-sort");resetView();
   });
 }
 
