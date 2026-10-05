@@ -197,21 +197,10 @@ async function init(){
     if(!response.ok) throw new Error("media.json could not be loaded");
 
     const seed = await response.json();
-    let live = [];
-    try{
-      live = await fetchBlueskyFemgram();
-    }catch(liveErr){
-      console.warn("Live Bluesky collector unavailable:", liveErr);
-    }
-
-    const byId = new Map();
-    [...seed, ...live].forEach(item => byId.set(item.id, item));
-    state.items = [...byId.values()].sort((a,b) => new Date(b.date) - new Date(a.date));
+    state.items = seed.sort((a,b) => new Date(b.date) - new Date(a.date));
 
     $("#notice").hidden = false;
-    $("#notice").textContent = live.length
-      ? `Live mode: loaded ${live.length} real Femgram media items from Bluesky, plus the curated source catalogue.`
-      : "Live Bluesky search was unavailable, so the curated source catalogue is being shown.";
+    $("#notice").textContent = `Catalogue: ${state.items.length} real source items. The server-side collector refreshes the catalogue automatically.`;
     render();
   }catch(err){
     console.error(err);
