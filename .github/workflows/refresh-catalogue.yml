@@ -57,6 +57,10 @@ jobs:
         run: node scripts/fetch-flickr.mjs
         continue-on-error: true
 
+      - name: Refresh R34 Vault catalogue
+        run: node scripts/fetch-r34vault.mjs
+        continue-on-error: true
+
       - name: Commit catalogue when changed
         run: |
           git config user.name "github-actions[bot]"
