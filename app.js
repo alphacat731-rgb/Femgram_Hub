@@ -8,7 +8,8 @@ const state = {
   current: null,
   liked: new Set(JSON.parse(localStorage.getItem("femgram-liked") || "[]")),
   saved: new Set(JSON.parse(localStorage.getItem("femgram-saved") || "[]")),
-  visibleCount: 48
+  visibleCount: 36,
+  loadingMore: false
 };
 
 const $ = (s) => document.querySelector(s);
@@ -43,7 +44,7 @@ function card(item){
   return `
     <article class="card" tabindex="0" data-id="${esc(item.id)}">
       <div class="thumb">
-        <img class="thumb-art" src="${esc(item.thumbnail)}" alt="${esc(item.title)}" loading="lazy">
+        <img class="thumb-art" src="${esc(item.thumbnail || item.media || "")}" alt="${esc(item.title)}" loading="lazy" decoding="async">
         <span class="badge">${typeLabel}</span>
         <div class="card-overlay">
           <button class="round-btn ${liked?'active':''}" data-action="like" aria-label="${liked?'Unlike':'Like'}">${liked?'♥':'♡'}</button>
@@ -58,6 +59,14 @@ function card(item){
     </article>`;
 }
 
+function setLoadingMore(isLoading){
+  state.loadingMore = isLoading;
+  const loader = $("#loadMore");
+  if(!loader) return;
+  loader.setAttribute("aria-busy", String(isLoading));
+  loader.classList.toggle("is-loading", isLoading);
+}
+
 function render(){
   const items = filtered();
   const visible = items.slice(0, state.visibleCount);
@@ -70,28 +79,34 @@ function render(){
 
   const loader = $("#loadMore");
   const loaderText = $("#loadMoreText");
-
   if(loader){
     const hasMore = visible.length < items.length;
     loader.hidden = !hasMore;
-    if(hasMore){
-      loaderText.textContent = `Showing ${visible.length} of ${items.length} — keep scrolling`;
-    }
+    loaderText.textContent = hasMore
+      ? `Showing ${visible.length} of ${items.length} — more loads automatically`
+      : "";
+    if(!hasMore) setLoadingMore(false);
   }
 
   persist();
 }
 
 function resetView(){
-  state.visibleCount = 48;
+  state.visibleCount = 36;
+  setLoadingMore(false);
   render();
 }
 
 function loadMoreItems(){
   const items = filtered();
-  if(state.visibleCount >= items.length) return;
-  state.visibleCount = Math.min(state.visibleCount + 36, items.length);
-  render();
+  if(state.loadingMore || state.visibleCount >= items.length) return;
+
+  setLoadingMore(true);
+  window.requestAnimationFrame(() => {
+    state.visibleCount = Math.min(state.visibleCount + 36, items.length);
+    render();
+    setLoadingMore(false);
+  });
 }
 
 function setActive(selector, value, attr="data-type"){
@@ -120,6 +135,9 @@ function openViewer(id){
 }
 
 function closeViewer(){
+  const video = $("#viewerMedia video");
+  if(video) video.pause();
+  $("#viewerMedia").innerHTML = "";
   modal.hidden = true;
   document.body.style.overflow = "";
   state.current = null;
@@ -132,6 +150,34 @@ function toggle(set, id){
     $("#viewerLike").textContent = state.liked.has(id) ? "♥ Liked" : "♥ Like";
     $("#viewerSave").textContent = state.saved.has(id) ? "🔖 Saved" : "🔖 Save";
   }
+}
+
+function initInfiniteScroll(){
+  const loader = $("#loadMore");
+  const button = $("#loadMoreButton");
+  if(!loader) return;
+
+  button?.addEventListener("click", loadMoreItems);
+
+  if("IntersectionObserver" in window){
+    const observer = new IntersectionObserver(entries => {
+      if(entries.some(entry => entry.isIntersecting)){
+        loadMoreItems();
+      }
+    }, {rootMargin:"1200px 0px"});
+    observer.observe(loader);
+  }
+}
+
+function handleImageError(event){
+  const img = event.target;
+  if(!(img instanceof HTMLImageElement)) return;
+  if(img.dataset.failed) return;
+
+  img.dataset.failed = "1";
+  img.src = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500"><rect width="800" height="500" fill="#0d0f16"/><text x="400" y="250" text-anchor="middle" fill="#9ea5b8" font-family="Arial, sans-serif" font-size="28">Preview unavailable</text></svg>'
+  )}`;
 }
 
 function isRestricted(post){
@@ -225,10 +271,10 @@ async function init(){
     if(!response.ok) throw new Error("media.json could not be loaded");
 
     const seed = await response.json();
-    state.items = seed.sort((a,b) => new Date(b.date) - new Date(a.date));
+    state.items = Array.isArray(seed) ? seed.sort((a,b) => new Date(b.date) - new Date(a.date)) : [];
 
     $("#notice").hidden = false;
-    $("#notice").textContent = `Catalogue: ${state.items.length} real source items. The server-side collector refreshes the catalogue automatically.`;
+    $("#notice").textContent = `Catalogue: ${state.items.length} real source items across ${new Set(state.items.map(i => i.source)).size} sources. More items load automatically as you scroll.`;
     render();
   }catch(err){
     console.error(err);
@@ -270,23 +316,14 @@ async function init(){
 
   $("#searchInput").addEventListener("input", e => { state.query = e.target.value; resetView(); });
 
-  const loadMoreControl = $("#loadMore");
-  if(loadMoreControl){
-    loadMoreControl.addEventListener("click", loadMoreItems);
+  initInfiniteScroll();
 
-    if("IntersectionObserver" in window){
-      const observer = new IntersectionObserver(entries => {
-        if(entries.some(entry => entry.isIntersecting)){
-          window.requestAnimationFrame(loadMoreItems);
-        }
-      }, {rootMargin:"900px 0px"});
-      observer.observe(loadMoreControl);
-    }
-  }
   window.addEventListener("keydown", e => {
     if(e.key === "/" && document.activeElement !== $("#searchInput")){ e.preventDefault(); $("#searchInput").focus(); }
     if(e.key === "Escape") closeViewer();
   });
+
+  gallery.addEventListener("error", handleImageError, true);
 
   gallery.addEventListener("click", e => {
     const button = e.target.closest("[data-action]");
@@ -301,6 +338,7 @@ async function init(){
     }
     openViewer(id);
   });
+
   gallery.addEventListener("keydown", e => {
     if((e.key === "Enter" || e.key === " ") && e.target.closest(".card")){
       e.preventDefault(); openViewer(e.target.closest(".card").dataset.id);
@@ -309,8 +347,8 @@ async function init(){
 
   $("#closeModal").addEventListener("click", closeViewer);
   document.querySelector(".modal-backdrop").addEventListener("click", closeViewer);
-  $("#viewerLike").addEventListener("click", ()=>toggle(state.liked,state.current.id));
-  $("#viewerSave").addEventListener("click", ()=>toggle(state.saved,state.current.id));
+  $("#viewerLike").addEventListener("click", ()=>state.current && toggle(state.liked,state.current.id));
+  $("#viewerSave").addEventListener("click", ()=>state.current && toggle(state.saved,state.current.id));
   $("#clearFilters").addEventListener("click", () => {
     state.type="all";state.sort="new";state.likedOnly=false;state.savedOnly=false;state.query="";
     $("#searchInput").value="";$("#likedBtn").classList.remove("active");$("#savedTopBtn").classList.remove("active");
