@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 
 const OUTPUT = "data/media.json";
 const TAG_URL = "https://rule34vault.com/femgram";
-const MAX_POSTS = 40;
+const MAX_POSTS = 60;
 
 function decode(value=""){
   return String(value)
@@ -12,6 +12,7 @@ function decode(value=""){
     .replace(/&#39;/g, "'")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
+    .replace(/&#x2F;/gi, "/")
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1");
 }
 
@@ -22,7 +23,9 @@ function strip(value=""){
 function meta(html, key){
   const patterns = [
     new RegExp(`<meta[^>]+property=["']${key}["'][^>]+content=["']([^"']+)["'][^>]*>`, "i"),
-    new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+property=["']${key}["'][^>]*>`, "i")
+    new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+property=["']${key}["'][^>]*>`, "i"),
+    new RegExp(`<meta[^>]+name=["']${key}["'][^>]+content=["']([^"']+)["'][^>]*>`, "i"),
+    new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+name=["']${key}["'][^>]*>`, "i")
   ];
   for(const re of patterns){
     const match = html.match(re);
@@ -41,6 +44,25 @@ function titleFromPost(html){
 
 function looksForbidden(text){
   return /\b(child|minor|underage|loli|shota)\b/i.test(text);
+}
+
+function extractMedia(html){
+  const image = meta(html, "og:image") || meta(html, "twitter:image");
+  const video = meta(html, "og:video:url") || meta(html, "og:video") || meta(html, "twitter:player:stream");
+
+  const sourceMatches = [...html.matchAll(/<(?:video|source)[^>]+(?:src|data-src)=["']([^"']+)["']/gi)]
+    .map(match => decode(match[1]))
+    .filter(url => /^https?:\/\//i.test(url));
+
+  const directVideo = sourceMatches.find(url => /\.(?:mp4|webm|mov)(?:\?|$)/i.test(url));
+  const directImage = sourceMatches.find(url => /\.(?:jpe?g|png|webp|gif)(?:\?|$)/i.test(url));
+
+  const mediaVideo = video || directVideo || "";
+  const mediaImage = image || directImage || "";
+
+  if(mediaVideo) return {type:"video", media:mediaVideo, thumbnail:mediaImage || mediaVideo};
+  if(mediaImage) return {type:"image", media:mediaImage, thumbnail:mediaImage};
+  return null;
 }
 
 async function fetchText(url){
@@ -68,12 +90,9 @@ async function parsePost(url){
 
   if(looksForbidden(text)) return null;
 
-  const image = meta(html, "og:image");
-  const video = meta(html, "og:video:url") || meta(html, "og:video");
-  const media = image || video;
-  if(!media) return null;
+  const found = extractMedia(html);
+  if(!found) return null;
 
-  const type = video ? "video" : "image";
   const id = url.match(/\/post\/(\d+)/)?.[1] || Buffer.from(url).toString("base64url").slice(0, 40);
 
   const tags = [...new Set([
@@ -84,13 +103,13 @@ async function parsePost(url){
 
   return {
     id: `rule34vault-${id}`,
-    type,
+    type: found.type,
     title: titleFromPost(html),
     artist: "R34 Vault",
     source: "R34 Vault",
     sourceUrl: url,
-    thumbnail: image || media,
-    media,
+    thumbnail: found.thumbnail,
+    media: found.media,
     tags,
     likes: 0,
     date: meta(html, "article:published_time") || new Date().toISOString(),
@@ -105,7 +124,7 @@ async function main(){
 
   let added = 0;
   const urls = await collectPostUrls();
-  console.log(`R34 Vault discovered ${urls.length} post URLs`);
+  console.log(`R34 Vault discovered ${urls.length} post URLs from ${TAG_URL}`);
 
   for(const url of urls){
     try{
@@ -117,7 +136,7 @@ async function main(){
     }catch(error){
       console.warn(`R34 Vault skipped ${url}: ${error.message}`);
     }
-    await new Promise(r => setTimeout(r, 700));
+    await new Promise(r => setTimeout(r, 600));
   }
 
   const output = [...merged.values()].sort((a,b) => new Date(b.date) - new Date(a.date));
