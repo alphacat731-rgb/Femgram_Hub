@@ -166,6 +166,8 @@ function initInfiniteScroll(){
       }
     }, {rootMargin:"1200px 0px"});
     observer.observe(loader);
+  }else{
+    loader.classList.add("manual-fallback");
   }
 }
 
