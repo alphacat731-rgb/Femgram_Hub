@@ -22,8 +22,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Refresh live catalogue
+      - name: Refresh Bluesky catalogue
         run: node scripts/fetch-bluesky.mjs
+
+      - name: Refresh Openverse catalogue
+        run: node scripts/fetch-openverse.mjs
+        continue-on-error: true
+
+      - name: Refresh Wikimedia Commons catalogue
+        run: node scripts/fetch-wikimedia.mjs
+        continue-on-error: true
+
+      - name: Refresh Reddit catalogue
+        run: node scripts/fetch-reddit.mjs
+        continue-on-error: true
+
+      - name: Refresh Newgrounds catalogue
+        run: node scripts/fetch-newgrounds.mjs
+        continue-on-error: true
 
       - name: Commit catalogue when changed
         run: |
