@@ -45,6 +45,14 @@ jobs:
         run: node scripts/fetch-deviantart.mjs
         continue-on-error: true
 
+      - name: Refresh Mastodon catalogue
+        run: node scripts/fetch-mastodon.mjs
+        continue-on-error: true
+
+      - name: Refresh Tumblr catalogue
+        run: node scripts/fetch-tumblr.mjs
+        continue-on-error: true
+
       - name: Commit catalogue when changed
         run: |
           git config user.name "github-actions[bot]"
