@@ -22,7 +22,7 @@
         <button id="enterBtn" class="btn btn-primary">I'm 18+ — Enter</button>
         <button id="leaveBtn" class="btn btn-ghost">Leave</button>
       </div>
-      <p class="tiny">Demo build: no explicit media is bundled in this repository.</p>
+      <p class="tiny">Media is loaded from external sources and the catalogue. Source attribution stays attached to every item.</p>
     </div>
   </div>
 
@@ -52,7 +52,7 @@
       <div>
         <p class="eyebrow">ONE CHARACTER. ONE HUB.</p>
         <h1>Find Femgram media<br><span>without the scavenger hunt.</span></h1>
-        <p class="hero-copy">A clean, source-aware gallery for images, GIFs and videos. Local likes and saves work right away; source adapters can feed the catalogue later.</p>
+        <p class="hero-copy">A clean, source-aware gallery for images, GIFs and videos. Local likes and saves work right away; the catalogue refreshes automatically from supported public sources.</p>
       </div>
       <div class="stats">
         <div><strong id="mediaCount">0</strong><span>items</span></div>
@@ -81,16 +81,18 @@
       <div>
         <p class="eyebrow">EXTERNAL SOURCE</p>
         <strong>R34 Vault</strong>
-        <span>Open the original Femgram tag page. Media remains hosted by the source.</span>
+        <span>The Femgram tag is catalogued when public media metadata is available; the original media stays on R34 Vault.</span>
       </div>
       <a class="btn btn-secondary" href="https://rule34vault.com/femgram" target="_blank" rel="noopener noreferrer">Open source ↗</a>
     </section>
 
     <section id="gallery" class="gallery" aria-live="polite"></section>
-    <button id="loadMore" class="load-more" hidden type="button">
+
+    <div id="loadMore" class="load-more" hidden role="status" aria-live="polite">
       <span class="load-more-spinner" aria-hidden="true"></span>
       <span id="loadMoreText">Loading more…</span>
-    </button>
+      <button id="loadMoreButton" class="btn btn-secondary" type="button">Load more</button>
+    </div>
 
     <section id="emptyState" class="empty" hidden>
       <div class="empty-icon">✦</div>
